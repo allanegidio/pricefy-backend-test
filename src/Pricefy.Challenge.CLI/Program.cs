@@ -12,31 +12,22 @@ namespace Pricefy.Challenge.CLI
 {
     public class Title
     {
-        [Name("tconst")]
         public string Id { get; set; }
 
-        [Name("titleType")]
         public string Type { get; set; }
 
-        [Name("primaryTitle")]
         public string PrimaryTitle { get; set; }
 
-        [Name("originalTitle")]
         public string OriginalTitle { get; set; }
 
-        [Name("isAdult")]
         public bool IsAdult { get; set; }
 
-        [Name("startYear")]
         public string StartYear { get; set; }
 
-        [Name("endYear")]
         public string EndYear { get; set; }
 
-        [Name("runtimeMinutes")]
         public string RuntimeMinutes { get; set; }
 
-        [Name("genres")]
         public List<string> Genres { get; set; }
     }
 
@@ -59,8 +50,7 @@ namespace Pricefy.Challenge.CLI
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = "\t",
-                Mode = CsvMode.NoEscape,
-                // HeaderValidated = null
+                Mode = CsvMode.NoEscape
             };
 
             using (var reader = new StreamReader(@"C:/titles/data.tsv"))
@@ -73,7 +63,15 @@ namespace Pricefy.Challenge.CLI
                 {
                     listTitles.Add(new Title()
                     {
-                        Id = csv.GetField<string>("tconst")
+                        Id = csv.GetField<string>("tconst"),
+                        Type = csv.GetField<string>("titleType"),
+                        PrimaryTitle = csv.GetField<string>("primaryTitle"),
+                        OriginalTitle = csv.GetField<string>("originalTitle"),
+                        IsAdult = csv.GetField<bool>("isAdult"),
+                        StartYear = csv.GetField<string>("startYear"),
+                        EndYear = csv.GetField<string>("endYear"),
+                        RuntimeMinutes = csv.GetField<string>("runtimeMinutes"),
+                        Genres = csv.GetField<string>("genres").Split(",").ToList()
                     });
                 }
             }
