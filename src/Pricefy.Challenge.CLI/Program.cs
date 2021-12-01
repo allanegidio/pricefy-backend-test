@@ -47,14 +47,9 @@ namespace Pricefy.Challenge.CLI
             Console.WriteLine("Import Title Basics from IMDB");
             Console.WriteLine("Please send the path of File that you would like to Import:");
 
-            //var path = Console.ReadLine();
+            var path = Console.ReadLine();
 
-            //Console.WriteLine("Chosen path was:" + path);
-
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            var listTitles = new List<Title>();
+            Console.WriteLine("Chosen path was:" + path);
 
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -62,22 +57,21 @@ namespace Pricefy.Challenge.CLI
                 Mode = CsvMode.NoEscape
             };
 
-
             using (var reader = new StreamReader(@"D:/titles/data.tsv"))
             using (var csv = new CsvReader(reader, config))
             {
                 int id = 1;
                 int totalRowsFile = 1000;
+
                 csv.Read();
                 csv.ReadHeader();
 
-                var titles = csv.GetRecords<Title>().ToList();
+                var titles = csv.GetRecords<dynamic>().ToList();
 
                 for (var row = 0; row <= titles.Count / totalRowsFile; row++, id++)
                 {
                     var fileRows = titles.Skip(row * totalRowsFile)
                                         .Take(totalRowsFile);
-
 
                     var outputPath = Path.Combine(@"D:/titles/chunk", @$"titles.file.{id}.{DateTime.Now.ToString("yyyy-MM-dd")}.tsv");
 
@@ -89,37 +83,7 @@ namespace Pricefy.Challenge.CLI
                         }
                     }
                 }
-
-                // while (csv.Read())
-                // {
-                //     chunk++;
-
-                //     if (chunk == 1000)
-                //     {
-                //         chunk = 0;
-                //         id++;
-                //         // Escreve novo arquivo e envia para API
-                //         var outputPath = Path.Combine(@"D:/titles/chunk", $"titles.file.{id}.{DateTime.Now.ToString("yyyy-MM-dd")}");
-
-                //     }
-
-                //     listTitles.Add(new Title()
-                //     {
-                //         Id = csv.GetField<string>("tconst"),
-                //         Type = csv.GetField<string>("titleType"),
-                //         PrimaryTitle = csv.GetField<string>("primaryTitle"),
-                //         OriginalTitle = csv.GetField<string>("originalTitle"),
-                //         IsAdult = csv.GetField<bool>("isAdult"),
-                //         StartYear = csv.GetField<string>("startYear"),
-                //         EndYear = csv.GetField<string>("endYear"),
-                //         RuntimeMinutes = csv.GetField<string>("runtimeMinutes"),
-                //         Genres = csv.GetField<string>("genres").Split(",").ToList()
-                //     });
-                // }
             }
-
-            stopwatch.Stop();
-            Console.WriteLine(stopwatch.ElapsedMilliseconds / 1000);
         }
     }
 }
