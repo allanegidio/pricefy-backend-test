@@ -1,16 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Globalization;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Pricefy.Challenge.Application.Services;
+using Pricefy.Challenge.Domain.Entities;
+using Pricefy.Challenge.Domain.Repositories;
+using Pricefy.Challenge.Infra.Repositories;
 
 namespace Pricefy.Challenge.API
 {
@@ -26,6 +26,8 @@ namespace Pricefy.Challenge.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<ITsvService>(service => new TsvService(new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = "\t", Mode = CsvMode.NoEscape }));
+            services.AddScoped<ITitleRepository, TitleRepository>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

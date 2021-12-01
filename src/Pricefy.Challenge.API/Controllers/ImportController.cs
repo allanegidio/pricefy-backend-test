@@ -10,7 +10,9 @@ using CsvHelper.Configuration.Attributes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Pricefy.Challenge.API.Extensions;
 using Pricefy.Challenge.Domain.Entities;
+using Pricefy.Challenge.Domain.Repositories;
 
 namespace Pricefy.Challenge.API.Controllers
 {
@@ -20,37 +22,36 @@ namespace Pricefy.Challenge.API.Controllers
     {
         private readonly ILogger<ImportController> _logger;
 
-        public ImportController(ILogger<ImportController> logger)
+        private readonly ITsvService _tsvService;
+
+        private readonly ITitleRepository _titleRepository;
+
+        public ImportController(ILogger<ImportController> logger, ITsvService tsvService, ITitleRepository titleRepository)
         {
             _logger = logger;
+            _tsvService = tsvService;
+            _titleRepository = titleRepository;
         }
 
         [HttpPost]
         public async Task<IActionResult> Import(IFormFile formFile)
         {
-            if (formFile == null || formFile.Length == 0)
+            try
             {
-                return BadRequest();
+                if (formFile == null || formFile.Length == 0)
+                    return BadRequest();
+
+                var titles = _tsvService.ReadFile<Title>(formFile.OpenReadStream().ToStreamReader());
+
+                _titleRepository.BulkInsert(titles);
+
+
+                return Ok();
             }
-
-            var listTitles = new List<Title>();
-
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            catch (Exception ex)
             {
-                Delimiter = "\t",
-                Mode = CsvMode.NoEscape
-            };
-
-            using (var reader = new StreamReader(formFile.OpenReadStream()))
-            using (var csv = new CsvReader(reader, config))
-            {
-                csv.Read();
-                csv.ReadHeader();
-
-                var titles = csv.GetRecords<Title>().ToList();
+                return StatusCode(500, new { message = "An error occoured when import file." });
             }
-
-            return Ok();
         }
     }
 }
