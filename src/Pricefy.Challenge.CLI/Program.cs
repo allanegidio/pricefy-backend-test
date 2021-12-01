@@ -62,10 +62,6 @@ namespace Pricefy.Challenge.CLI
             {
                 int id = 1;
                 int totalRowsFile = 1000;
-
-                csv.Read();
-                csv.ReadHeader();
-
                 var titles = csv.GetRecords<dynamic>().ToList();
 
                 for (var row = 0; row <= titles.Count / totalRowsFile; row++, id++)
