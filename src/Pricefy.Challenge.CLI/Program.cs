@@ -4,11 +4,25 @@ using System.IO;
 using System.Linq;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Pricefy.Challenge.CLI.Constants;
 
 namespace Pricefy.Challenge.CLI
 {
     class Program
     {
+        public IConfiguration _configuration;
+
+        public void ConfigureServiceProvider(IServiceCollection serviceCollection)
+        {
+
+            serviceCollection.AddLogging()
+                            .AddHttpClient(PricefyConstants.ImportAPI_NAME,
+                                client => client.BaseAddress = new Uri(_configuration[PricefyConstants.ImportAPI_URL])
+                            );
+        }
+
         public static void Main(string[] args)
         {
             Console.WriteLine("Import Title Basics from IMDB");
