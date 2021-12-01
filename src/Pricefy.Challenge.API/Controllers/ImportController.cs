@@ -10,6 +10,7 @@ using CsvHelper.Configuration.Attributes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Pricefy.Challenge.Domain.Entities;
 
 namespace Pricefy.Challenge.API.Controllers
 {
