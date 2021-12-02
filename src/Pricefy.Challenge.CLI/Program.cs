@@ -56,17 +56,16 @@ namespace Pricefy.Challenge.CLI
 
             Console.WriteLine("Chosen path was:" + inputPath);
 
-            var initialId = 1;
             var outputPath = @"D:/titles/chunk";
-            var fileName = @$"titles.file.{initialId}.{DateTime.Now.ToString("yyyy-MM-dd")}.tsv";
+            var fileName = "titles.file";
 
-            _tsvService.SplitTsvFile(inputPath, outputPath, fileName, initialId: initialId);
+            _tsvService.SplitTsvFile(inputPath, outputPath, fileName);
         }
 
         public static void ConfigureServiceProvider(IServiceCollection serviceCollection)
         {
             // Add Services
-            serviceCollection.AddScoped<ITsvService, TsvService>();
+            serviceCollection.AddScoped<ITsvService>(service => new TsvService(new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = "\t", Mode = CsvMode.NoEscape }));
             serviceCollection.AddScoped<App>();
 
             // Add Log

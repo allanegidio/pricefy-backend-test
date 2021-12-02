@@ -36,7 +36,7 @@ namespace Pricefy.Challenge.Infra.Services
                     var fileRows = titles.Skip(row * rowsPerFile)
                                         .Take(rowsPerFile);
 
-                    var outputPathWithFileName = Path.Combine(outputPath, fileName);
+                    var outputPathWithFileName = Path.Combine(outputPath, @$"{fileName}.{initialId}.{DateTime.Now.ToString("yyyy-MM-dd")}.tsv");
 
                     using (var writer = new StreamWriter(outputPathWithFileName, false, System.Text.Encoding.UTF8))
                     {
