@@ -30,6 +30,7 @@ namespace Pricefy.Challenge.API
             services.AddScoped<ITitleRepository, TitleRepository>();
 
             services.AddControllers();
+            services.AddCors();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pricefy.Challenge.API", Version = "v1" });
@@ -52,6 +53,8 @@ namespace Pricefy.Challenge.API
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseCors(option => option.AllowAnyOrigin());
 
             app.UseEndpoints(endpoints =>
             {

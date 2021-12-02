@@ -24,6 +24,8 @@ namespace Pricefy.Challenge.CLI
 
         public static ITsvService _tsvService;
 
+        public static IImportClient _importClient;
+
         public static void Main(string[] args)
         {
             ServiceCollection serviceCollection = new ServiceCollection();
@@ -36,14 +38,16 @@ namespace Pricefy.Challenge.CLI
 
             _tsvService = serviceProvider.GetService<ITsvService>();
 
+            _importClient = serviceProvider.GetService<IImportClient>();
+
             try
             {
                 MainAsync(args).Wait();
                 _logger.LogInformation("Import File Finished");
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Occured an error when tryed import tsv file");
+                _logger.LogError($"Occured an error when tryed import tsv file: {ex.Message}");
             }
         }
 
@@ -60,15 +64,36 @@ namespace Pricefy.Challenge.CLI
             var fileName = "titles.file";
 
             _tsvService.SplitTsvFile(inputPath, outputPath, fileName);
+
+            var files = Directory.GetFiles(@"D:/titles/chunk/");
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    var bytes = File.ReadAllBytes(file);
+                    string fileNameReq = Path.GetFileName(file);
+                    await _importClient.SendTSVFile(bytes, "formFile", fileNameReq);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Occured an error when tryed import tsv file: {ex.Message}");
+                }
+
+            }
         }
 
         public static void ConfigureServiceProvider(IServiceCollection serviceCollection)
         {
-            // Add Services
+            // Add appsettings
+            _configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
+                .AddJsonFile("appsettings.json", false)
+                .Build();
+
             serviceCollection.AddScoped<ITsvService>(service => new TsvService(new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = "\t", Mode = CsvMode.NoEscape }));
             serviceCollection.AddScoped<App>();
 
-            // Add Log
             serviceCollection.AddSingleton(LoggerFactory.Create(builder => builder.AddConsole()));
             serviceCollection.AddLogging();
 
@@ -76,11 +101,6 @@ namespace Pricefy.Challenge.CLI
             serviceCollection.AddHttpClient<IImportClient, ImportClient>(PricefyConstants.ImportAPI_NAME,
                                 client => client.BaseAddress = new Uri(_configuration[PricefyConstants.ImportAPI_URL]));
 
-            // Add appsettings
-            _configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
-                .AddJsonFile("appsettings.json", false)
-                .Build();
         }
     }
 }
