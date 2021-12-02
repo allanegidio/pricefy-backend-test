@@ -43,13 +43,16 @@ namespace Pricefy.Challenge.API.Controllers
 
                 var titles = _tsvService.ReadFile<Title>(formFile.OpenReadStream().ToStreamReader());
 
-                _titleRepository.BulkInsert(titles);
+                if (titles == null || titles.Count == 0)
+                    return BadRequest();
 
+                _titleRepository.BulkInsert(titles);
 
                 return Ok();
             }
             catch (Exception ex)
             {
+                _logger.LogError($"An error occoured when import file. Message is: {ex.Message}");
                 return StatusCode(500, new { message = "An error occoured when import file." });
             }
         }
