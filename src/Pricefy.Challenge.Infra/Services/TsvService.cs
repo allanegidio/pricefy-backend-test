@@ -24,7 +24,7 @@ namespace Pricefy.Challenge.Infra.Services
                 return csv.GetRecords<T>().ToList();
         }
 
-        public void SplitTsvFile(string inputPath, int rowsPerFile = 1000, int initialId = 1)
+        public void SplitTsvFile(string inputPath, string outputPath, string fileName, int rowsPerFile = 1000, int initialId = 1)
         {
             using (var reader = new StreamReader(inputPath))
             using (var csv = new CsvReader(reader, _csvConfiguration))
@@ -36,9 +36,9 @@ namespace Pricefy.Challenge.Infra.Services
                     var fileRows = titles.Skip(row * rowsPerFile)
                                         .Take(rowsPerFile);
 
-                    var outputPath = Path.Combine(@"D:/titles/chunk", @$"titles.file.{initialId}.{DateTime.Now.ToString("yyyy-MM-dd")}.tsv");
+                    var outputPathWithFileName = Path.Combine(outputPath, fileName);
 
-                    using (var writer = new StreamWriter(outputPath, false, System.Text.Encoding.UTF8))
+                    using (var writer = new StreamWriter(outputPathWithFileName, false, System.Text.Encoding.UTF8))
                     {
                         using (var csvFile = new CsvWriter(writer, _csvConfiguration))
                         {

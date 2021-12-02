@@ -2,10 +2,12 @@
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Pricefy.Challenge.CLI.Constants;
 using Pricefy.Challenge.Domain.Clients;
 using Pricefy.Challenge.Domain.Entities;
@@ -16,58 +18,68 @@ namespace Pricefy.Challenge.CLI
 {
     class Program
     {
-        public IConfiguration _configuration;
+        public static IConfiguration _configuration;
 
-        public void ConfigureServiceProvider(IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddScoped<ITsvService, TsvService>();
+        public static ILogger<Program> _logger;
 
-            serviceCollection.AddLogging()
-                            .AddHttpClient<IImportClient, ImportClient>(PricefyConstants.ImportAPI_NAME,
-                                client => client.BaseAddress = new Uri(_configuration[PricefyConstants.ImportAPI_URL])
-                            );
-        }
+        public static ITsvService _tsvService;
 
         public static void Main(string[] args)
+        {
+            ServiceCollection serviceCollection = new ServiceCollection();
+            ConfigureServiceProvider(serviceCollection);
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            _logger = serviceProvider.GetService<ILoggerFactory>()
+                                    .CreateLogger<Program>();
+
+            _tsvService = serviceProvider.GetService<ITsvService>();
+
+            try
+            {
+                MainAsync(args).Wait();
+            }
+            catch
+            {
+            }
+        }
+
+        public static async Task MainAsync(string[] args)
         {
             Console.WriteLine("Import Title Basics from IMDB");
             Console.WriteLine("Please send the path of File that you would like to Import:");
 
-            var path = Console.ReadLine();
+            var inputPath = Console.ReadLine();
 
-            Console.WriteLine("Chosen path was:" + path);
+            Console.WriteLine("Chosen path was:" + inputPath);
+
+            var initialId = 1;
+            var outputPath = @"D:/titles/chunk";
+            var fileName = @$"titles.file.{initialId}.{DateTime.Now.ToString("yyyy-MM-dd")}.tsv";
+
+            _tsvService.SplitTsvFile(inputPath, outputPath, fileName, initialId: initialId);
+        }
+
+        public static void ConfigureServiceProvider(IServiceCollection serviceCollection)
+        {
+            // Add Services
+            serviceCollection.AddScoped<ITsvService, TsvService>();
+            serviceCollection.AddScoped<App>();
+
+            // Add Log
+            serviceCollection.AddSingleton(LoggerFactory.Create(builder => builder.AddConsole()));
+            serviceCollection.AddLogging();
 
 
+            serviceCollection.AddHttpClient<IImportClient, ImportClient>(PricefyConstants.ImportAPI_NAME,
+                                client => client.BaseAddress = new Uri(_configuration[PricefyConstants.ImportAPI_URL]));
 
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                Delimiter = "\t",
-                Mode = CsvMode.NoEscape
-            };
-
-            using (var reader = new StreamReader(@"D:/titles/data.tsv"))
-            using (var csv = new CsvReader(reader, config))
-            {
-                int id = 1;
-                int totalRowsFile = 1000;
-                var titles = csv.GetRecords<dynamic>().ToList();
-
-                for (var row = 0; row <= titles.Count / totalRowsFile; row++, id++)
-                {
-                    var fileRows = titles.Skip(row * totalRowsFile)
-                                        .Take(totalRowsFile);
-
-                    var outputPath = Path.Combine(@"D:/titles/chunk", @$"titles.file.{id}.{DateTime.Now.ToString("yyyy-MM-dd")}.tsv");
-
-                    using (var writer = new StreamWriter(outputPath, false, System.Text.Encoding.UTF8))
-                    {
-                        using (var csvFile = new CsvWriter(writer, config))
-                        {
-                            csvFile.WriteRecords(fileRows);
-                        }
-                    }
-                }
-            }
+            // Add appsettings
+            _configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
+                .AddJsonFile("appsettings.json", false)
+                .Build();
         }
     }
 }
