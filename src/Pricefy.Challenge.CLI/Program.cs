@@ -39,9 +39,11 @@ namespace Pricefy.Challenge.CLI
             try
             {
                 MainAsync(args).Wait();
+                _logger.LogInformation("Import File Finished");
             }
             catch
             {
+                _logger.LogError("Occured an error when tryed import tsv file");
             }
         }
 
