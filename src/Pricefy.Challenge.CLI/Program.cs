@@ -7,6 +7,10 @@ using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Pricefy.Challenge.CLI.Constants;
+using Pricefy.Challenge.Domain.Clients;
+using Pricefy.Challenge.Domain.Entities;
+using Pricefy.Challenge.Infra.Clients;
+using Pricefy.Challenge.Infra.Services;
 
 namespace Pricefy.Challenge.CLI
 {
@@ -16,9 +20,10 @@ namespace Pricefy.Challenge.CLI
 
         public void ConfigureServiceProvider(IServiceCollection serviceCollection)
         {
+            serviceCollection.AddScoped<ITsvService, TsvService>();
 
             serviceCollection.AddLogging()
-                            .AddHttpClient(PricefyConstants.ImportAPI_NAME,
+                            .AddHttpClient<IImportClient, ImportClient>(PricefyConstants.ImportAPI_NAME,
                                 client => client.BaseAddress = new Uri(_configuration[PricefyConstants.ImportAPI_URL])
                             );
         }
@@ -31,6 +36,8 @@ namespace Pricefy.Challenge.CLI
             var path = Console.ReadLine();
 
             Console.WriteLine("Chosen path was:" + path);
+
+
 
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {

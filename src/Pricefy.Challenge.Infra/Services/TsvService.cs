@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Pricefy.Challenge.Domain.Entities;
 
-namespace Pricefy.Challenge.Application.Services
+namespace Pricefy.Challenge.Infra.Services
 {
     public class TsvService : ITsvService
     {

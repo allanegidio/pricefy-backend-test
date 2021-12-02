@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Pricefy.Challenge.Infra\Pricefy.Challenge.Infra.csproj" />
+    <ProjectReference Include="..\Pricefy.Challenge.Domain\Pricefy.Challenge.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,10 +7,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using Pricefy.Challenge.Application.Services;
 using Pricefy.Challenge.Domain.Entities;
 using Pricefy.Challenge.Domain.Repositories;
 using Pricefy.Challenge.Infra.Repositories;
+using Pricefy.Challenge.Infra.Services;
 
 namespace Pricefy.Challenge.API
 {
