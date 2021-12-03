@@ -3,11 +3,22 @@ using System.Data;
 using Pricefy.Challenge.Domain.Entities;
 using Pricefy.Challenge.Domain.Repositories;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 
 namespace Pricefy.Challenge.Infra.Repositories
 {
     public class TitleRepository : ITitleRepository
     {
+        string connection = @"Server=localhost; Database=Import; User ID=sa; Password=MeuSQLEXPRESS123456789;";
+        SqlConnection _con;
+        SqlBulkCopy _bulk;
+
+        public TitleRepository()
+        {
+            _con = new SqlConnection(connection);
+            _bulk = new SqlBulkCopy(_con);
+        }
+
         public void BulkInsert(List<Title> titles)
         {
             var tbl = new DataTable();
@@ -37,27 +48,37 @@ namespace Pricefy.Challenge.Infra.Repositories
                 tbl.Rows.Add(dr);
             }
 
-            string connection = @"Server=localhost; Database=Import; User ID=sa; Password=MeuSQLEXPRESS123456789;";
-            SqlConnection con = new SqlConnection(connection);
-            SqlBulkCopy bulk = new SqlBulkCopy(con);
+            _bulk.DestinationTableName = "Title";
 
-            bulk.DestinationTableName = "Titles";
+            _bulk.ColumnMappings.Add("Id", "Id");
+            _bulk.ColumnMappings.Add("Type", "Type");
+            _bulk.ColumnMappings.Add("PrimaryTitle", "PrimaryTitle");
+            _bulk.ColumnMappings.Add("OriginalTitle", "OriginalTitle");
+            _bulk.ColumnMappings.Add("IsAdult", "IsAdult");
+            _bulk.ColumnMappings.Add("StartYear", "StartYear");
+            _bulk.ColumnMappings.Add("EndYear", "EndYear");
+            _bulk.ColumnMappings.Add("RuntimeMinutes", "RuntimeMinutes");
+            _bulk.ColumnMappings.Add("Genres", "Genres");
 
-            bulk.ColumnMappings.Add("Id", "Id");
-            bulk.ColumnMappings.Add("Type", "Type");
-            bulk.ColumnMappings.Add("PrimaryTitle", "PrimaryTitle");
-            bulk.ColumnMappings.Add("OriginalTitle", "OriginalTitle");
-            bulk.ColumnMappings.Add("IsAdult", "IsAdult");
-            bulk.ColumnMappings.Add("StartYear", "StartYear");
-            bulk.ColumnMappings.Add("EndYear", "EndYear");
-            bulk.ColumnMappings.Add("RuntimeMinutes", "RuntimeMinutes");
-            bulk.ColumnMappings.Add("Genres", "Genres");
+            _con.Open();
 
-            con.Open();
+            _bulk.WriteToServer(tbl);
 
-            bulk.WriteToServer(tbl);
+            _con.Close();
+        }
 
-            con.Close();
+        public async Task<bool> IsImported(string fileName)
+        {
+            _con.Open();
+
+            var cmd = new SqlCommand("SELECT FileName FROM File WHERE FileName = @fileName", _con);
+
+            cmd.Parameters.AddWithValue("@fileName", fileName);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            return reader.HasRows ? true
+                                : false;
         }
     }
 }
