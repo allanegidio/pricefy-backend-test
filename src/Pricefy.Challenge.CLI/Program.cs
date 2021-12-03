@@ -54,13 +54,49 @@ namespace Pricefy.Challenge.CLI
         public static async Task MainAsync(string[] args)
         {
             Console.WriteLine("Import Title Basics from IMDB");
-            Console.WriteLine("Please send the path of File that you would like to Import:");
 
+            Console.WriteLine("What would you like? 1 - Import File or 2 - List all imported files.");
+            Console.WriteLine("Press 1 - Import File");
+            Console.WriteLine("Press 2 - List all imported files.");
+
+            int inputDecision;
+            while (!int.TryParse(Console.ReadLine(), out inputDecision))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("enter number of conversations ");
+            }
+
+            switch (inputDecision)
+            {
+                case 1:
+                    await ImportTsvFile();
+                    break;
+
+                case 2:
+                    await ListAllFilesImported();
+                    break;
+
+                default:
+                    Console.WriteLine("There isn't an action for this number.");
+                    break;
+            }
+        }
+
+        private static Task ListAllFilesImported()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static async Task ImportTsvFile()
+        {
+
+            Console.WriteLine("Please send the path of File that you would like to Import:");
             var inputPath = Console.ReadLine();
 
             Console.WriteLine("Chosen path was:" + inputPath);
 
-            var outputPath = @"D:/titles/chunk";
+            var outputPath = @"D:/titles/chunk/";
             var fileName = "titles.file";
 
             _tsvService.SplitTsvFile(inputPath, outputPath, fileName);
@@ -71,19 +107,27 @@ namespace Pricefy.Challenge.CLI
             {
                 try
                 {
-                    var bytes = File.ReadAllBytes(file);
                     string fileNameReq = Path.GetFileName(file);
-                    await _importClient.SendTSVFile(bytes, "formFile", fileNameReq);
+                    var isImported = await _importClient.IsImported(file);
+
+                    if (isImported.IsImported)
+                    {
+                        _logger.LogError(isImported.Message);
+                        Console.WriteLine(isImported.Message);
+                        continue;
+                    }
+
+                    var bytes = File.ReadAllBytes(file);
+                    await _importClient.SendTsvFile(bytes, "formFile", fileNameReq);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError($"Occured an error when tryed import tsv file: {ex.Message}");
                 }
-
             }
         }
 
-        public static void ConfigureServiceProvider(IServiceCollection serviceCollection)
+        private static void ConfigureServiceProvider(IServiceCollection serviceCollection)
         {
             // Add appsettings
             _configuration = new ConfigurationBuilder()
@@ -92,7 +136,6 @@ namespace Pricefy.Challenge.CLI
                 .Build();
 
             serviceCollection.AddScoped<ITsvService>(service => new TsvService(new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = "\t", Mode = CsvMode.NoEscape }));
-            serviceCollection.AddScoped<App>();
 
             serviceCollection.AddSingleton(LoggerFactory.Create(builder => builder.AddConsole()));
             serviceCollection.AddLogging();
