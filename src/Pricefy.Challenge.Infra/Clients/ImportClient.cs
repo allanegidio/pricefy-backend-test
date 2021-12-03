@@ -1,9 +1,10 @@
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Pricefy.Challenge.Domain.Clients;
+using Pricefy.Challenge.Domain.Responses;
 
 namespace Pricefy.Challenge.Infra.Clients
 {
@@ -17,31 +18,42 @@ namespace Pricefy.Challenge.Infra.Clients
             _logger = logger;
         }
 
-        public async Task SendTSVFile(byte[] tsv, string name, string fileName)
+        public async Task<IsImportedResponse> IsImported(string file)
+        {
+            var res = await _httpClient.GetAsync($"/IsImported/{file}");
+            var responseContent = await res.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<IsImportedResponse>(responseContent);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                _logger.LogError(result.Message);
+                return result;
+            }
+
+            _logger.LogInformation(result.Message);
+            return result;
+        }
+
+        public async Task<ImportTsvFileResponse> SendTsvFile(byte[] tsv, string name, string fileName)
         {
             var content = new MultipartFormDataContent();
 
-            // using (var ms = new MemoryStream())
-            // {
-            //     tsv.CopyTo(ms);
-            //     content.Add(new StreamContent(new MemoryStream(ms.ToArray())), name, fileName);
-
-
-            //     var res = await _httpClient.PostAsync("/Import", content);
-            //     var result = await res.Content.ReadAsStringAsync();
-            // }
-
-
             content.Add(new StreamContent(new MemoryStream(tsv)), name, fileName);
 
-
             var res = await _httpClient.PostAsync("/Import", content);
-            var result = await res.Content.ReadAsStringAsync();
 
+            var responseContent = await res.Content.ReadAsStringAsync();
 
+            var result = JsonSerializer.Deserialize<ImportTsvFileResponse>(responseContent);
 
+            if (!res.IsSuccessStatusCode)
+            {
+                _logger.LogError($"An error occoured when tried to send {fileName}. Statuscode is: {res.StatusCode} and content is: {responseContent}");
+                return result;
+            }
 
-
+            _logger.LogInformation($"{fileName} imported with success");
+            return result;
         }
     }
 }
