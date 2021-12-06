@@ -40,7 +40,7 @@ namespace Pricefy.Challenge.Infra.Clients
 
             content.Add(new StreamContent(new MemoryStream(tsv)), name, fileName);
 
-            var res = await _httpClient.PostAsync("/Import", content);
+            var res = await _httpClient.PostAsync("/ImportFile", content);
 
             var responseContent = await res.Content.ReadAsStringAsync();
 

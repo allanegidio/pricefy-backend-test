@@ -96,12 +96,12 @@ namespace Pricefy.Challenge.CLI
 
             Console.WriteLine("Chosen path was:" + inputPath);
 
-            var outputPath = @"D:/titles/chunk/";
+            var outputPath = @"../../files/chunk";
             var fileName = "titles.file";
 
             _tsvService.SplitTsvFile(inputPath, outputPath, fileName);
 
-            var files = Directory.GetFiles(@"D:/titles/chunk/");
+            var files = Directory.GetFiles(outputPath);
 
             foreach (var file in files)
             {
