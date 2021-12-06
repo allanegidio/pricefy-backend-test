@@ -5,7 +5,7 @@ namespace Pricefy.Challenge.Domain.Responses
     public class IsImportedResponse
     {
         [JsonPropertyName("success")]
-        public string Success { get; set; }
+        public bool Success { get; set; }
 
         [JsonPropertyName("message")]
         public string Message { get; set; }
