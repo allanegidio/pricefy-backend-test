@@ -108,7 +108,7 @@ namespace Pricefy.Challenge.CLI
                 try
                 {
                     string fileNameReq = Path.GetFileName(file);
-                    var isImported = await _importClient.IsImported(file);
+                    var isImported = await _importClient.IsImported(fileNameReq);
 
                     if (isImported.IsImported)
                     {
