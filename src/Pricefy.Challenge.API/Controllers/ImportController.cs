@@ -17,7 +17,7 @@ using Pricefy.Challenge.Domain.Repositories;
 namespace Pricefy.Challenge.API.Controllers
 {
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("[action]")]
     public class ImportController : ControllerBase
     {
         private readonly ILogger<ImportController> _logger;
@@ -76,9 +76,9 @@ namespace Pricefy.Challenge.API.Controllers
                 var isImported = await _titleRepository.IsImported(fileName);
 
                 if (isImported)
-                    return Ok(new { success = isImported, message = $"TSV File {fileName} is already imported." });
+                    return Ok(new { success = true, isImported = isImported, message = $"TSV File {fileName} is already imported." });
 
-                return Ok(new { success = true, message = "Import TSV File was successful" });
+                return Ok(new { success = true, isImported = isImported, message = "Import TSV File never was imported" });
             }
             catch (Exception ex)
             {
